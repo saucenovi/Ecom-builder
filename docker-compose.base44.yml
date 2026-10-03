@@ -1,0 +1,25 @@
+services:
+  web:
+    image: node:22
+    working_dir: /app
+    volumes:
+      - .:/app
+      - droply-data:/app/data
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - DB_FILE=/app/data/droply.db
+    env_file:
+      - /run/base44/app.env
+    command: ["sh", "-ec", "npm install --no-audit --no-fund && exec node --watch server.js"]
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/api/health').then(r=>r.json()).then(j=>{process.exit(j.ok?0:1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  droply-data:
